@@ -1,0 +1,16 @@
+{
+    "name": "desafio-2",
+    "version": "1.0.0",
+    "description": "Desafio parte 2 - Linx",
+    "private": true,
+    "main": "server.js",
+    "scripts": {
+        "start": "node server.js"
+    },
+    "keywords": [],
+    "author": "Alessandro Elias",
+    "license": "GPLv3",
+    "dependencies": {
+    "express": "^4.17.1"
+    }
+}
