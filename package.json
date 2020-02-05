@@ -11,6 +11,7 @@
     "author": "Alessandro Elias",
     "license": "GPLv3",
     "dependencies": {
+        "daemon": "^1.1.0",
         "express": "^4.17.1",
         "minimist": "^1.2.0",
         "os": "^0.1.1"
