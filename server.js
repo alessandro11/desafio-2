@@ -21,12 +21,11 @@
  * USA.
  */
 
-
-var express = require('express');
 var os = require('os');
 var path = require('path');
 var minimist = require('minimist');
-var app = express();
+var cluster = require('cluster');
+var fs = require('fs');
 
 
 //
@@ -48,37 +47,85 @@ if (argv.help || argv.h) {
     return 0;
 }
 
-var configFile = argv.config || argv.c || 'config.js';
-var config;
-try {
-    config = require(path.resolve('.', configFile));
-} catch( e ) {
-    if (e.code === 'MODULE_NOT_FOUND') {
-        console.error('No ' + configFile + ', fallback to default values.\n');
-        config = {};
-    }
-    else {
-        console.error('Error while parsing configuration file ('+configFile+')!\n');
-        console.error(e.stack);
-        return 2;
-    }    
-}
-
-var devMode = argv.dev || 
-    (process.env.NODE_ENV && (process.env.NODE_ENV.slice(0,3) === 'dev')) || 'dev';
+var config = {};
+var devMode = argv.dev || (process.env.NODE_ENV && (process.env.NODE_ENV.slice(0,3) === 'dev'));
 var port = parseInt(argv.port || argv.p || process.env.PORT) || 3000;
 var numWorkers = parseInt(argv['num-workers'] || argv.n) || (os.cpus().length);
 var daemon = argv.daemon || argv.d || false;
 var pidfile = argv['pid-file'] || config.pid_file || process.env.PID_FILE || path.resolve('/run/', 'webserver.pid');
 var stdoutLog = argv['stdout-log'] || false;
 
-console.log('param=',devMode, port, numWorkers, daemon, pidfile, stdoutLog);
-return 0;
-app.get('/', function (req, res) {
-  res.send('Hello World!');
+if (devMode) {
+    // In dev mode force a single process
+    numWorkers = 1;
+}
+
+// Create worker
+function createWorker() {
+    // Fork process
+    if (cluster.isMaster) {
+        // daemonize the process (useful for init.d scripts and similar)
+        if (daemon) {
+            /***
+             * WARNING: There is a bug in the package daemon
+             * child_process.js:422
+             *      throw new ERR_INVALID_ARG_TYPE('options.cwd', 'string', options.cwd);
+             * if you import daemon with no parameters ( require('daemon')(opt); ), the
+             * above error will be raised. You can pass the opt parameter, so the package
+             * does not use the function process.cwd as a property.
+             */
+            var opt = {
+                "env": process.env,
+                "cwd": process.cwd()
+            };
+            require('daemon')(opt);
+            fs.writeFileSync(pidfile, process.pid);
+        }
+
+        console.log('Starting server in '+ (devMode ? 'development' : 'production') +
+        ' mode, spawning ' + numWorkers + ' workers');
+
+        var child = cluster.fork();
+        
+        // Respawn child process.
+        child.on('exit', function(worker, code, signal) {
+            console.log('Worker ' + worker.id + ' has died with code: ' + code + ', signal: ' + signal +
+            '.\nRestarting it...');
+            createWorker();
+        });
+    } else {  // New worker running; load app
+        require('./app');
+    }
+}
+
+function createWorkers(n) {
+    for (var i = 0; i < n; i++) {
+        createWorker();
+    }
+}
+
+function killAllWorkers(signal) {
+  var id,
+      worker;
+
+  for (id in cluster.workers) {
+    if (cluster.workers.hasOwnProperty(id)) {
+      worker = cluster.workers[id];
+      worker.removeAllListeners();
+      worker.process.kill(signal);
+    }
+  }
+}
+
+process.on('SIGHUP', function () {
+  killAllWorkers('SIGTERM');
+  createWorkers(numWorkers);
 });
 
-app.listen(3000, function () {
-  console.log('Example app listening on port 3000!');
+process.on('SIGTERM', function () {
+  killAllWorkers('SIGTERM');
 });
+
+// Create a worker per CPU; or user defined.
+createWorkers(numWorkers);
 
