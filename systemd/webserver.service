@@ -1,0 +1,19 @@
+[Unit]
+Description=NodeJS WebServer - Desafio parte 2
+DefaultDependencies=no
+After=network.target
+
+[Service]
+Type=forking
+Environment="NODE_ENV=prod"
+WorkingDirectory=$HOME
+ExecStart=$HOME/.nvm/nvm-exec desafio-2/server.js -d
+ExecStop=/bin/kill -TERM $MAINPID
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=on-failure
+RemainAfterExit=true
+TimeoutStartSec=5min
+
+[Install]
+WantedBy=multi-user.target
+
