@@ -27,7 +27,6 @@ var minimist = require('minimist');
 var cluster = require('cluster');
 var fs = require('fs');
 
-
 //
 // Parse command line arguments
 //
@@ -60,6 +59,10 @@ if (devMode) {
     numWorkers = 1;
 }
 
+var logger = require('./lib/logger.js');
+var log = logger(stdoutLog ? "stdout" : "default");
+
+
 // Create worker
 function createWorker() {
     // Fork process
@@ -82,14 +85,14 @@ function createWorker() {
             fs.writeFileSync(pidfile, process.pid);
         }
 
-        console.log('Starting server in '+ (devMode ? 'development' : 'production') +
+        log.info('Starting server in '+ (devMode ? 'development' : 'production') +
         ' mode, spawning ' + numWorkers + ' workers');
 
         var child = cluster.fork();
         
         // Respawn child process.
         child.on('exit', function(worker, code, signal) {
-            console.log('Worker ' + worker.id + ' has died with code: ' + code + ', signal: ' + signal +
+            log.info('Worker ' + worker.id + ' has died with code: ' + code + ', signal: ' + signal +
             '.\nRestarting it...');
             createWorker();
         });
@@ -118,12 +121,12 @@ function killAllWorkers(signal) {
 }
 
 process.on('SIGHUP', function () {
-  killAllWorkers('SIGTERM');
-  createWorkers(numWorkers);
+    killAllWorkers('SIGTERM');
+    createWorkers(numWorkers);
 });
 
 process.on('SIGTERM', function () {
-  killAllWorkers('SIGTERM');
+    killAllWorkers('SIGTERM');
 });
 
 // Create a worker per CPU; or user defined.
