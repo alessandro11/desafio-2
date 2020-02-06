@@ -31,9 +31,7 @@ app.listen(3000, function () {
     console.log('Example app listening on port 3000!');
 
     // Check if we are running as root
-    console.log('gid: ', process.getgid())
     if (process.getgid() === 0) {
-        console.log('setting gid...');
         process.setgid('webserver');
         process.setuid('webserver');
     }
