@@ -30,6 +30,10 @@ app.get('/', function (req, res) {
     res.send('Hello World!');
 });
 
+app.get('/health', function (req, res) {
+    res.send(200);
+});
+
 process.on('SIGTERM', function () {
     if (app === undefined) return;
 
