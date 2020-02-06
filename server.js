@@ -54,6 +54,7 @@ var daemon = argv.daemon || argv.d || false;
 var pidfile = argv['pid-file'] || config.pid_file || process.env.PID_FILE || path.resolve('/run/', 'webserver.pid');
 var stdoutLog = argv['stdout-log'] || false;
 
+
 if (devMode) {
     // In dev mode force a single process
     numWorkers = 1;
@@ -64,7 +65,7 @@ var log = logger(stdoutLog ? "stdout" : "default");
 
 
 // Create worker
-function createWorker() {
+function createWorker(port) {
     // Fork process
     if (cluster.isMaster) {
         // daemonize the process (useful for init.d scripts and similar)
@@ -97,13 +98,23 @@ function createWorker() {
             createWorker();
         });
     } else {  // New worker running; load app
-        require('./app');
+        var app = require('./app');
+
+        app.listen(port, function () {
+            console.log('Example app listening on port ' + port + '!');
+
+            // Check if we are running as root
+            if (process.getgid() === 0) {
+                process.setgid('webserver');
+                process.setuid('webserver');
+            }
+        });
     }
 }
 
 function createWorkers(n) {
     for (var i = 0; i < n; i++) {
-        createWorker();
+        createWorker(port + i + 1);
     }
 }
 

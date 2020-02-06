@@ -22,26 +22,21 @@
 
 var express = require('express');
 var app = express();
+var logger = require('./lib/logger.js');
+var log = logger("default");
 
 app.get('/', function (req, res) {
+    //log.info('Middleware GET / ');
     res.send('Hello World!');
-});
-
-app.listen(3000, function () {
-    console.log('Example app listening on port 3000!');
-
-    // Check if we are running as root
-    if (process.getgid() === 0) {
-        process.setgid('webserver');
-        process.setuid('webserver');
-    }
 });
 
 process.on('SIGTERM', function () {
     if (app === undefined) return;
-        app.close(function () {
+
+    app.close(function () {
         // Disconnect from cluster master
         process.disconnect && process.disconnect();
     });
 });
 
+module.exports = app;
