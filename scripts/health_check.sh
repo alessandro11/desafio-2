@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-env &> /tmp/log
+
 shopt -s lastpipe
 
-. /etc/default/webserver
+. /etc/default/CREATED_USER
 
 #
 # Do not restart, unless no process could be found
@@ -10,13 +10,13 @@ shopt -s lastpipe
 restart=1
 
 #
-# Check if there is at least a single node process running.
+# Check if there is a node per core
 #
 np=0
 ps -e -o pid,cmd | grep node |
 while read pid proc param; do
-    if [[ $proc =~ ^/home/webserver/.*/node.* ]] && \
-       [ "$param" == "/home/webserver/desafio-2/server.js -d" ]; then
+    if [[ $proc =~ ^/home/CREATED_USER/.*/node.* ]] && \
+       [ "$param" == "/home/CREATED_USER/desafio-2/server.js -d" ]; then
         np=$((np+1))
     fi
 done
@@ -26,7 +26,7 @@ nump=$(nproc)
 nump=$((nump+1))
 if [ $nump -eq $np ]; then
     #
-    # Check if the route response.
+    # Check the route response.
     #
     res=$(curl -s -o /dev/null -w "%{http_code}" "$DOMAIN")
     [ $res -ne 200 ] && restart=0
@@ -35,7 +35,7 @@ else
 fi
 
 if [ $restart -eq 0 ]; then
-    systemctl restart webserver.service
+    systemctl restart CREATED_USER.service
 fi
 
 exit 0
