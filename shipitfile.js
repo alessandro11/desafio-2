@@ -9,7 +9,8 @@ module.exports = shipit => {
             keepWorkspace: false, // should we remove workspace dir after deploy?
             deleteOnRollback: false,
             //key: '~/.ssh/id_ecdsa',
-            branch: master
+            tag: 'rc-0.0.1',
+            //banch: <branch name>
             deploy: {
                 remoteCopy: {
                     copyAsDir: false, // Should we copy as the dir (true) or the content of the dir (false)
@@ -19,5 +20,17 @@ module.exports = shipit => {
         production: {
             servers: 'webserver@webserver.com',
         },
+    });
+
+    shipit.blTask('install_dep', async () => {
+        await shipit.remote('cd current; \
+            /home/webserver/.nvm/nvm-exec npm install; \
+            sudo /bin/systemctl reload webserver.service')
+        .then(({ stdout }) => console.log(stdout))
+        .catch(({ stderr }) => console.error(stderr));
     })
+
+    shipit.on('deployed', function() {
+        shipit.start('install_dep');
+    });
 }
