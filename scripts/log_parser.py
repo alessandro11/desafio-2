@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 
+import os
 import re
 import smtplib
+from string import Template
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email_server_setup import MX, PORT, FROM, TO, SUBJECT, LOGIN, PASS, LOG_FILE
@@ -31,9 +33,9 @@ def GetFreqAccessLog():
     return dic_resource
 
 def SendEmail(body):
-    smtp_serv = smtplib.SMTP(host=MX, port=PORT)
-    smtp_serv.starttls()
-    smtp_serv.login(LOGIN, PASS)
+    smtp_server = smtplib.SMTP(host=MX, port=PORT)
+    smtp_server.starttls()
+    smtp_server.login(LOGIN, PASS)
 
     msg = MIMEMultipart()       # create a message
     msg['From']    = FROM
@@ -41,8 +43,41 @@ def SendEmail(body):
     msg['Subject'] = SUBJECT
 
     msg.attach(MIMEText(body, 'plain'))
-    smtp_serv.sendmail(msg['From'], msg['To'], msg.as_string());
-    smtp_serv.quit()
+    smtp_server.sendmail(msg['From'], msg['To'], msg.as_string());
+    smtp_server.quit()
 
-report = GetFreqAccessLog()
-SendEmail(str(report))
+def GetHeadersOfEmail():
+    hostname = os.uname()[1]
+    header = """
+ Este e-mail e automatizado, favor nao responder.
+ A seguinte tabela abaixo apresenta os acesso do servidor
+ (servidor: %s)
+ com dados do access log do servico http{,s}, agregados por url,
+ codigo bem como respectivas frequencias de acesso:
+
+
+    """ % (hostname)
+
+    return header
+
+def FormatTable(dic):
+    template = "|{URL:30}|{COD:6}|{FREQ:6}|"
+    hdr = "{0:-<45}|\n".format('|')
+    formated = '\n' + hdr
+    formated += template.format(URL="URL", COD="COD.", FREQ="FREQ.") + '\n'
+    formated += hdr
+
+    for val in dic:
+        url_cod = val.split()
+        row = {'URL': url_cod[0], 'COD': url_cod[1], 'FREQ': dic[val]}
+        formated += template.format(**row) + '\n'
+    formated += hdr
+    formated += "\n\nLinx Impulse."
+
+    return formated
+
+email_body = GetHeadersOfEmail()
+dic = GetFreqAccessLog()
+email_body += FormatTable(dic)
+print(email_body)
+SendEmail(email_body)
