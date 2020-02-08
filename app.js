@@ -34,10 +34,11 @@ app.get('/health', function (req, res) {
     res.send(200);
 });
 
-#
-# Those following routes were added to provied a little
-# artificial workload.
-#
+/*
+ * Those following routes were added to provied a little
+ * artificial workload.
+ *
+ */
 app.get('/route1', function (req, res) {
     var n = randomIntInc(1, 15);
     log.info('wait: 100ms, for ' + n + ' time(s).');
