@@ -9,8 +9,8 @@ module.exports = shipit => {
             keepWorkspace: false, // should we remove workspace dir after deploy?
             deleteOnRollback: false,
             //key: '~/.ssh/id_ecdsa',
-            tag: 'rc-0.0.2',
-            //banch: <branch name>
+            //tag: 'rc-0.0.2',
+            banch: 'master',
             deploy: {
                 remoteCopy: {
                     copyAsDir: false, // Should we copy as the dir (true) or the content of the dir (false)
@@ -18,7 +18,7 @@ module.exports = shipit => {
             },
         },
         production: {
-            servers: 'webserver@webserver.com',
+            servers: 'webserver@webserver2.com',
         },
     });
 
