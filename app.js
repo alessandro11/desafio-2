@@ -34,6 +34,55 @@ app.get('/health', function (req, res) {
     res.send(200);
 });
 
+#
+# Those following routes were added to provied a little
+# artificial workload.
+#
+app.get('/route1', function (req, res) {
+    var n = randomIntInc(1, 15);
+    log.info('wait: 100ms, for ' + n + ' time(s).');
+    for (var i = 0; i < n; i++) {
+        wait(100);
+    }
+
+    // 201 Created
+    res.send(201);
+});
+
+app.get('/route2', function (req, res) {
+    for (var i = 0; i < 100000; i++) {
+        // nothing
+    }
+
+    // 202 Accepted
+    res.send(202);
+});
+
+app.get('/route3', function (req, res) {
+    var n = randomIntInc(1, 3);
+    var ms = randomIntInc(100, 333);
+    for (var i = 0; i < n; i++) {
+        wait(100);
+    }
+
+    // 203 Non-Authoritative Information
+    res.send(203);
+});
+
+function wait(ms, cb) {
+    var start = new Date();
+    while ((new Date()) - start <= ms) {
+        //Nothing
+    }
+    if (cb) {
+        eval(cb);
+    }
+}
+
+function randomIntInc(low, high) {
+    return Math.floor(Math.random() * (high - low + 1) + low)
+}
+
 process.on('SIGTERM', function () {
     if (app === undefined) return;
 
