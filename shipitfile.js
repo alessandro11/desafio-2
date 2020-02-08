@@ -9,7 +9,7 @@ module.exports = shipit => {
             keepWorkspace: false, // should we remove workspace dir after deploy?
             deleteOnRollback: false,
             //key: '~/.ssh/id_ecdsa',
-            tag: 'rc-0.0.1',
+            tag: 'rc-0.0.2',
             //banch: <branch name>
             deploy: {
                 remoteCopy: {
