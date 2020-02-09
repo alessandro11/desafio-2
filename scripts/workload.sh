@@ -14,7 +14,7 @@ for ((i=0; i < $nworkers-1; i++ )); do
     route="${routes[index]}"
 
     echo "$index: Request: $domain/$route"
-    curl -s -o /dev/null -m 1 -w "%{http_code} %{time_starttransfer}\n" "$domain/$route"  >> ${nworkers}_curl_responses.log 2>&1 &
+    curl -s -o /dev/null -m 3 -w "%{http_code} %{time_starttransfer}\n" "$domain/$route"  >> ${nworkers}_curl_responses.log 2>&1 &
     pids="$pids $!"
 done
 
