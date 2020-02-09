@@ -40,14 +40,7 @@ app.get('/health', function (req, res) {
  *
  */
 app.get('/route1', function (req, res) {
-    var n = randomIntInc(1, 15);
-    log.info('wait: 100ms, for ' + n + ' time(s).');
-    for (var i = 0; i < n; i++) {
-        wait(100);
-    }
-
-    // 201 Created
-    res.send(201);
+    res.send('DEU');
 });
 
 app.get('/route2', function (req, res) {
