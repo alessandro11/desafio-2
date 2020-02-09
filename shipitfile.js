@@ -18,7 +18,8 @@ module.exports = shipit => {
             },
         },
         production: {
-            servers: 'webserver@webserver2.com',
+            branch: 'tst',
+            servers: 'webserver@webserver3.com',
         },
     });
 
@@ -30,7 +31,17 @@ module.exports = shipit => {
         .catch(({ stderr }) => console.error(stderr));
     })
 
+    shipit.blTask('restart', async () => {
+        await shipit.remote('sudo /bin/systemctl reload webserver.service')
+            .then(({ stdout }) => console.log(stdout))
+            .catch(({ stderr }) => console.error(stderr));
+    })
+
     shipit.on('deployed', function() {
         shipit.start('install_dep');
+    });
+
+    shipit.on('rollbacked', function() {
+        shipit.start('restart');
     });
 }
